@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Игра на суммы цифр</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #000;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      flex-direction: column;
+    }
+
+    .fade-in {
+      opacity: 0;
+      animation: fadeIn 1.5s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+      }
+    }
+
+    #rules-container {
+      text-align: center;
+      max-width: 600px;
+      margin-bottom: 20px;
+    }
+
+    #start-button {
+      margin-top: 20px;
+      padding: 12px 30px;
+      background-color: orange;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 1.2em;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #start-button:hover {
+      background-color: darkorange;
+    }
+
+    #settings-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 30px;
+      animation: fadeIn 1.5s ease forwards;
+    }
+
+    .settings-label {
+      margin: 10px 0;
+      font-size: 1.2em;
+    }
+
+    .settings-checkbox {
+      appearance: none;
+      background-color: #222;
+      border: 2px solid orange;
+      border-radius: 4px;
+      width: 20px;
+      height: 20px;
+      margin: 0 5px;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .settings-checkbox:checked {
+      background-color: orange;
+    }
+
+    .settings-checkbox:checked::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 6px;
+      width: 4px;
+      height: 10px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    .number-option {
+      margin: 10px 0;
+      font-size: 1.1em;
+    }
+
+    .settings-button {
+      margin-top: 20px;
+      padding: 10px 25px;
+      background-color: orange;
+      border: none;
+      color: white;
+      font-size: 1.2em;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .settings-button:hover {
+      background-color: darkorange;
+    }
+
+    #game-container {
+      text-align: center;
+      width: 80%;
+      max-width: 500px;
+      position: relative;
+      display: none;
+    }
+
+    .number-box {
+      font-size: 3em;
+      margin: 20px;
+      padding: 20px;
+      background-color: orange;
+      border-radius: 10px;
+      display: inline-block;
+      width: 30%;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.3s ease;
+      opacity: 0;
+      transform: scale(0.5);
+    }
+
+    .correct {
+      background-color: green !important;
+      transform: scale(1.2);
+    }
+
+    .incorrect {
+      background-color: red !important;
+      transform: scale(0.8);
+    }
+
+    .show {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    #timer {
+      font-size: 2em;
+      margin-top: 20px;
+    }
+
+    #score {
+      font-size: 1.5em;
+      margin-top: 10px;
+    }
+
+    #countdown {
+      font-size: 3em;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 600px) {
+      #game-container {
+        width: 95%;
+      }
+
+      .number-box {
+        font-size: 2.5em;
+        width: 45%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="rules-container" class="fade-in">
+    <h1>Правила игры</h1>
+    <p>Перед вами будут показаны два или три числа.</p>
+    <p>Ваша задача — нажать на то число, сумма цифр которого самая большая.</p>
+    <p>У вас есть одна минута, чтобы набрать как можно больше очков.</p>
+    <button id="start-button" onclick="showSettings()">Далее</button>
+  </div>
+
+  <div id="settings-container">
+    <div class="number-option">
+      <label class="settings-label">Количество чисел:</label>
+      <input type="radio" class="settings-checkbox" name="numbers" value="2" checked> 2
+      <input type="radio" class="settings-checkbox" name="numbers" value="3"> 3
+    </div>
+    <div class="number-option">
+      <label class="settings-label">Цифр в числе:</label>
+      <input type="radio" class="settings-checkbox" name="digits" value="1" checked> 1
+      <input type="radio" class="settings-checkbox" name="digits" value="2"> 2
+      <input type="radio" class="settings-checkbox" name="digits" value="3"> 3
+      <input type="radio" class="settings-checkbox" name="digits" value="4"> 4
+      <input type="radio" class="settings-checkbox" name="digits" value="5"> 5
+    </div>
+    <button class="settings-button" onclick="startCountdown()">Начать игру</button>
+  </div>
+
+  <div id="game-container">
+    <div id="countdown">3</div>
+    <div id="numbers-container">
+      <div id="left-number" class="number-box" onclick="handleClick('left')"></div>
+      <div id="center-number" class="number-box" style="display: none;" onclick="handleClick('center')"></div>
+      <div id="right-number" class="number-box" onclick="handleClick('right')"></div>
+    </div>
+    <div id="timer">1:00</div>
+    <div id="score">Счет: 0</div>
+  </div>
+
+  <script>
+    const leftNumberElem = document.getElementById('left-number');
+    const centerNumberElem = document.getElementById('center-number');
+    const rightNumberElem = document.getElementById('right-number');
+    const timerElem = document.getElementById('timer');
+    const scoreElem = document.getElementById('score');
+    const countdownElem = document.getElementById('countdown');
+    const settingsContainer = document.getElementById('settings-container');
+    const gameContainer = document.getElementById('game-container');
+    const rulesContainer = document.getElementById('rules-container');
+
+    let score = 0;
+    let timeLeft = 60; // 1 минута
+    let timerInterval;
+    let leftSum = 0, centerSum = 0, rightSum = 0;
+    let gameOver = false;
+    let countdownInterval;
+    let numCount = 2;
+    let numDigits = 1;
+
+    function showSettings() {
+      rulesContainer.style.display = 'none';
+      settingsContainer.style.display = 'flex';
+    }
+
+    function getSelectedSettings() {
+      numCount = document.querySelector('input[name="numbers"]:checked').value;
+      numDigits = document.querySelector('input[name="digits"]:checked').value;
+    }
+
+    function generateRandomNumber() {
+      const digits = parseInt(numDigits);
+      const min = Math.pow(10, digits - 1);
+      const max = Math.pow(10, digits) - 1;
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function sumDigits(number) {
+      return number.toString().split('').reduce((sum, digit) => sum + parseInt(digit), 0);
+    }
+
+    function displayNumbers() {
+      let leftNumber, centerNumber, rightNumber;
+
+      do {
+        leftNumber = generateRandomNumber();
+        rightNumber = generateRandomNumber();
+        leftSum = sumDigits(leftNumber);
+        rightSum = sumDigits(rightNumber);
+      } while (leftSum === rightSum);
+
+      if (numCount === '3') {
+        do {
+          centerNumber = generateRandomNumber();
+          centerSum = sumDigits(centerNumber);
+        } while (centerSum === leftSum || centerSum === rightSum);
+        centerNumberElem.textContent = centerNumber;
+        centerNumberElem.style.display = 'inline-block';
+      } else {
+        centerNumberElem.style.display = 'none';
+        centerSum = -Infinity;
+      }
+
+      leftNumberElem.textContent = leftNumber;
+      rightNumberElem.textContent = rightNumber;
+
+      leftNumberElem.classList.remove('show');
+      rightNumberElem.classList.remove('show');
+      centerNumberElem.classList.remove('show');
+      setTimeout(() => {
+        leftNumberElem.classList.add('show');
+        rightNumberElem.classList.add('show');
+        if (numCount === '3') {
+          centerNumberElem.classList.add('show');
+        }
+      }, 100);
+    }
+
+    function updateTimer() {
+      if (timeLeft > 0) {
+        timeLeft--;
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timerElem.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+      } else {
+        clearInterval(timerInterval);
+        gameOver = true;
+        endGame();
+      }
+    }
+
+    function handleClick(selectedNumber) {
+      if (gameOver) return;
+
+      let correct = false;
+
+      if (selectedNumber === 'left' && leftSum > rightSum && leftSum > centerSum) {
+        correct = true;
+      } else if (selectedNumber === 'center' && centerSum > leftSum && centerSum > rightSum) {
+        correct = true;
+      } else if (selectedNumber === 'right' && rightSum > leftSum && rightSum > centerSum) {
+        correct = true;
+      }
+
+      if (correct) {
+        score++;
+        scoreElem.textContent = `Счет: ${score}`;
+        setButtonColor('correct');
+      } else {
+        setButtonColor('incorrect');
+      }
+
+      setTimeout(() => {
+        displayNumbers();
+        resetButtonColor();
+      }, 500);
+    }
+
+    function setButtonColor(color) {
+      leftNumberElem.classList.add(color);
+      rightNumberElem.classList.add(color);
+      if (numCount === '3') {
+        centerNumberElem.classList.add(color);
+      }
+    }
+
+    function resetButtonColor() {
+      leftNumberElem.classList.remove('correct', 'incorrect');
+      rightNumberElem.classList.remove('correct', 'incorrect');
+      centerNumberElem.classList.remove('correct', 'incorrect');
+    }
+
+    function startCountdown() {
+      getSelectedSettings();
+      settingsContainer.style.display = 'none';
+      gameContainer.style.display = 'block';
+
+      let countdownValue = 3;
+      countdownElem.textContent = countdownValue;
+
+      countdownInterval = setInterval(() => {
+        countdownValue--;
+        countdownElem.textContent = countdownValue;
+        if (countdownValue === 0) {
+          clearInterval(countdownInterval);
+          countdownElem.style.display = 'none';
+          startGame();
+        }
+      }, 1000);
+    }
+
+    function startGame() {
+      score = 0;
+      scoreElem.textContent = `Счет: ${score}`;
+      timeLeft = 60; // 1 минута
+      gameOver = false;
+      timerInterval = setInterval(updateTimer, 1000);
+      displayNumbers();
+    }
+
+    function endGame() {
+      setTimeout(() => {
+        if (confirm('Игра закончена. Хотите сыграть еще раз?')) {
+          startCountdown(); 
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+    </html>
